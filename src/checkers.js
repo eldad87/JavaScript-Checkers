@@ -341,4 +341,38 @@ Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
     return true;
 }
 
+/**
+ * Move a Pawn from Coordinate X to Y
+ *  If the Pawn Leap over other Pawn, it will get "eaten"
+ *
+ * @param Coordinate currCoordinate
+ * @param Coordinate destCoordinate
+ * @returns boolean
+ */
+Checkers.prototype.move = function(currCoordinate, destCoordinate) {
+    if(!this.validateMove(currCoordinate, destCoordinate)) {
+        return false;
+    }
+
+    var pawnsAtPath = this.getOccupiedCoordinatesByPath(currCoordinate, destCoordinate);
+    var pawn = this.getPawnByCoordinate(pawnsAtPath.shift()); //The 1st coordinate is occupied by our Pawn
+    // Remove the coordinate for the next Pawn in list, its been eaten
+    var eatenPawnCoordinate = pawnsAtPath.shift();
+    if(eatenPawnCoordinate) {
+        this.removePawn(eatenPawnCoordinate);
+    }
+
+
+    // Move the pawn to its final destination
+    this.addPawn(pawn, destCoordinate);
+    // remove old coordinate
+    this.removePawn(currCoordinate);
+    // Promote if needed
+    this.promoteIfNeeded(destCoordinate);
+
+    this.turnToggle();
+
+    return true;
+}
+
 module.exports = Checkers;
