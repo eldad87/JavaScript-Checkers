@@ -170,4 +170,64 @@ function Checkers(playerOne, playerTwo) {
     }
 }
 
+/**
+ * Init the game
+ *  Set Pawns in their location
+ *  Define which player need to start first
+ *
+ * @param firstTurnPlayer
+ */
+Checkers.prototype.init = function(firstTurnPlayer) {
+    this.resetBoard();
+
+    // Define which of the players should start first
+    if(undefined !== firstTurnPlayer) {
+        // Set which of the players need to start
+        if(firstTurnPlayer !== this.playerOne && firstTurnPlayer !== this.playerTwo) {
+            throw new Error('Wrong firstTurnPlayer provided');
+        }
+        this.currentPlayerTurn = firstTurnPlayer;
+    } else {
+        // Choose randomly which player should start
+        switch(Math.floor(Math.random() * 2)) {
+            case 1:
+                this.currentPlayerTurn = this.playerOne;
+                break;
+            default:
+                this.currentPlayerTurn = this.playerTwo;
+                break;
+        }
+    }
+    this.firstTurnPlayer = this.currentPlayerTurn;
+
+    // Lets calc how many rows we should go over in order to add all pawns
+    var pawnsPerRow = this.boardSize / 2; // 8 / 2 = 4
+    var rowsNeeded = this.maxPawnsPerPlayer / pawnsPerRow; // 12 / 4 = 3
+
+    // Add player's pawns
+    // Start with playerOne
+    for(var row = 0; row < rowsNeeded; row++) {
+        for(var col = 0; col < this.boardSize; col++) {
+            if(!this.isHabitableCoordinate(new Coordinate(row, col))) {
+                continue;
+            }
+
+            this.addPawn(new Pawn(this.playerOne), new Coordinate(row, col));
+        }
+    }
+
+    //Lets do that again, this time for the 2nd player
+    for(var row = this.boardSize -1; row > (this.boardSize -1 -rowsNeeded); row--) {
+        for(var col = 0; col < this.boardSize; col++) {
+            if(!this.isHabitableCoordinate(new Coordinate(row, col))) {
+                continue;
+            }
+
+            this.addPawn(new Pawn(this.playerTwo), new Coordinate(row, col));
+        }
+    }
+}
+
+
+
 module.exports = Checkers;
