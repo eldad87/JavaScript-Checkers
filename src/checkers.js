@@ -229,7 +229,7 @@ Checkers.prototype.init = function(firstTurnPlayer) {
 }
 
 /**
- * Get current player
+ * Get current player by turn
  * @returns Player
  */
 Checkers.prototype.getCurrentPlayer = function() {
@@ -243,6 +243,102 @@ Checkers.prototype.getCurrentPlayer = function() {
 Checkers.prototype.isGameWon = function() {
     return this.playerOne.getPawnCount() == 0 ||
         this.playerTwo.getPawnCount() == 0;
+}
+
+/**
+ * Validate if a player can move a pawn
+ * @param currCoordinate
+ * @param destCoordinate
+ */
+Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
+
+    // Make sure that Pawn is going to "move"
+    if(currCoordinate.getY() == destCoordinate.getY() || currCoordinate.getX() == destCoordinate.getX()) {
+        return false;
+    }
+
+    // Lets find if there is any pawn in current location;
+    var pawn = this.getPawnByCoordinate(currCoordinate);
+    if(!pawn) {
+        return false;
+    }
+
+    // Next, lets check if the pawn is owned by the current player
+    if(pawn.getPlayer() !== this.getCurrentPlayer()) {
+        return false;
+    }
+
+    // Check if the destination is outside of the board's boundaries
+    if(destCoordinate.getX() < 0 || destCoordinate.getX() > this.boardSize -1 ||
+        destCoordinate.getY() < 0 || destCoordinate.getY() > this.boardSize -1) {
+        return false;
+    }
+
+    // Check that our destination is habitable
+    if(!this.isHabitableCoordinate(destCoordinate)) {
+        return false;
+    }
+
+    // Check for Pawn's move direction
+    // playerOne's x axis must increase
+    // While playerTwo's x axis must decrease
+    if(pawn.getRole !== 'queen') {
+        if(pawn.getPlayer() == this.firstTurnPlayer) {
+            if(currCoordinate.getX() > destCoordinate.getX()) {
+                return false // Pawn is trying to move backward
+            }
+        } else if(currCoordinate.getX() < destCoordinate.getX()) {
+            return false // Pawn is trying to move backward
+        }
+    }
+
+    // Check for Pawns in our path
+    var coordinatesWithPawns = this.getOccupiedCoordinatesByPath(currCoordinate, destCoordinate);
+    // Our path CAN'T contain more then 2 Pawns
+    // 1. ours and 2. the one we're going to eat
+    if (coordinatesWithPawns.length > 2) {
+        return false;
+    }
+
+    // Make sure that our destination is within our reach
+    var maxStepsAllowed = pawn.getMaxStep();
+    if (coordinatesWithPawns.length === 2) {
+        // In case of an "eat" operation,
+        // a simple pawn is allowed to have 1 more step
+        maxStepsAllowed = Math.min(this.boardSize, maxStepsAllowed+1);
+
+        // Find the 2nd Pawn in path
+        // Make sure its not ours. We don't encourage cannibalism
+        var pawnInPath;
+        while(coordinatesWithPawns.length) {
+            // Start from the last items -> first item.
+            pawnInPath = this.getPawnByCoordinate(coordinatesWithPawns.pop());
+            if(pawnInPath === pawn) {
+                continue;
+            } else {
+                break;
+            }
+        }
+
+        if(pawnInPath.getPlayer() === pawn.getPlayer()) {
+            return false;
+        }
+    }
+
+    // Check that we moved in diagonal
+    var xAxisSteps = Math.abs(destCoordinate.getX() - currCoordinate.getX());
+    var yAxisSteps = Math.abs(destCoordinate.getY() - currCoordinate.getY());
+    if(xAxisSteps !== yAxisSteps) {
+        return false;
+    }
+
+    // Check for max distance
+    if(xAxisSteps > maxStepsAllowed ||
+        yAxisSteps > maxStepsAllowed) {
+        return false;
+    }
+
+    return true;
 }
 
 module.exports = Checkers;
