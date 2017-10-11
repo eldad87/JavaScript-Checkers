@@ -228,6 +228,21 @@ Checkers.prototype.init = function(firstTurnPlayer) {
     }
 }
 
+/**
+ * Get current player
+ * @returns Player
+ */
+Checkers.prototype.getCurrentPlayer = function() {
+    return this.currentPlayerTurn;
+}
 
+/**
+ * Determinant if a game is won
+ * @returns boolean
+ */
+Checkers.prototype.isGameWon = function() {
+    return this.playerOne.getPawnCount() == 0 ||
+        this.playerTwo.getPawnCount() == 0;
+}
 
 module.exports = Checkers;
