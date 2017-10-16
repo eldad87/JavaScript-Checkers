@@ -199,7 +199,7 @@ Checkers.prototype.init = function(firstTurnPlayer) {
     }
     this.firstTurnPlayer = this.currentPlayerTurn;
 
-    // Lets calc how many rows we should go over in order to add all pawns
+    // Lets calc how many rows and cols we should go over in order to add all pawns
     var pawnsPerRow = this.boardSize / 2; // 8 / 2 = 4
     var rowsNeeded = this.maxPawnsPerPlayer / pawnsPerRow; // 12 / 4 = 3
 
@@ -207,22 +207,31 @@ Checkers.prototype.init = function(firstTurnPlayer) {
     // Start with playerOne
     for(var row = 0; row < rowsNeeded; row++) {
         for(var col = 0; col < this.boardSize; col++) {
-            if(!this.isHabitableCoordinate(new Coordinate(row, col))) {
+            if(!this.isHabitableCoordinate(
+                    new Coordinate(row, col)
+                )) {
                 continue;
             }
 
-            this.addPawn(new Pawn(this.playerOne), new Coordinate(row, col));
+            this.addPawn(
+                new Pawn(this.playerOne), new Coordinate(row, col)
+            );
         }
     }
 
     //Lets do that again, this time for the 2nd player
-    for(var row = this.boardSize -1; row > (this.boardSize -1 -rowsNeeded); row--) {
+    for(var row = this.boardSize -1;
+        row > (this.boardSize -1 -rowsNeeded); row--) {
         for(var col = 0; col < this.boardSize; col++) {
-            if(!this.isHabitableCoordinate(new Coordinate(row, col))) {
+            if(!this.isHabitableCoordinate(
+                new Coordinate(row, col)
+                )) {
                 continue;
             }
 
-            this.addPawn(new Pawn(this.playerTwo), new Coordinate(row, col));
+            this.addPawn(
+                new Pawn(this.playerTwo), new Coordinate(row, col)
+            );
         }
     }
 }
@@ -249,10 +258,12 @@ Checkers.prototype.isGameWon = function() {
  * @param currCoordinate
  * @param destCoordinate
  */
-Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
+Checkers.prototype.validateMove
+    = function(currCoordinate, destCoordinate) {
 
     // Make sure that Pawn is going to "move"
-    if(currCoordinate.getY() == destCoordinate.getY() || currCoordinate.getX() == destCoordinate.getX()) {
+    if(currCoordinate.getY() == destCoordinate.getY() ||
+        currCoordinate.getX() == destCoordinate.getX()) {
         return false;
     }
 
@@ -268,8 +279,10 @@ Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
     }
 
     // Check if the destination is outside of the board's boundaries
-    if(destCoordinate.getX() < 0 || destCoordinate.getX() > this.boardSize -1 ||
-        destCoordinate.getY() < 0 || destCoordinate.getY() > this.boardSize -1) {
+    if(destCoordinate.getX() < 0 ||
+        destCoordinate.getY() < 0 ||
+        destCoordinate.getX() > this.boardSize -1 ||
+        destCoordinate.getY() > this.boardSize -1) {
         return false;
     }
 
@@ -292,7 +305,10 @@ Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
     }
 
     // Check for Pawns in our path
-    var coordinatesWithPawns = this.getOccupiedCoordinatesByPath(currCoordinate, destCoordinate);
+    var coordinatesWithPawns
+        = this.getOccupiedCoordinatesByPath(
+            currCoordinate, destCoordinate
+    );
     // Our path CAN'T contain more then 2 Pawns
     // 1. ours and 2. the one we're going to eat
     if (coordinatesWithPawns.length > 2) {
@@ -304,14 +320,18 @@ Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
     if (coordinatesWithPawns.length === 2) {
         // In case of an "eat" operation,
         // a simple pawn is allowed to have 1 more step
-        maxStepsAllowed = Math.min(this.boardSize, maxStepsAllowed+1);
+        maxStepsAllowed = Math.min(
+            this.boardSize, maxStepsAllowed+1
+        );
 
         // Find the 2nd Pawn in path
         // Make sure its not ours. We don't encourage cannibalism
         var pawnInPath;
         while(coordinatesWithPawns.length) {
             // Start from the last items -> first item.
-            pawnInPath = this.getPawnByCoordinate(coordinatesWithPawns.pop());
+            pawnInPath = this.getPawnByCoordinate(
+                coordinatesWithPawns.pop()
+            );
             if(pawnInPath === pawn) {
                 continue;
             } else {
@@ -325,8 +345,12 @@ Checkers.prototype.validateMove = function(currCoordinate, destCoordinate) {
     }
 
     // Check that we moved in diagonal
-    var xAxisSteps = Math.abs(destCoordinate.getX() - currCoordinate.getX());
-    var yAxisSteps = Math.abs(destCoordinate.getY() - currCoordinate.getY());
+    var xAxisSteps = Math.abs(
+        destCoordinate.getX() - currCoordinate.getX()
+    );
+    var yAxisSteps = Math.abs(
+        destCoordinate.getY() - currCoordinate.getY()
+    );
     if(xAxisSteps !== yAxisSteps) {
         return false;
     }
@@ -353,14 +377,17 @@ Checkers.prototype.move = function(currCoordinate, destCoordinate) {
         return false;
     }
 
-    var pawnsAtPath = this.getOccupiedCoordinatesByPath(currCoordinate, destCoordinate);
-    var pawn = this.getPawnByCoordinate(pawnsAtPath.shift()); //The 1st coordinate is occupied by our Pawn
-    // Remove the coordinate for the next Pawn in list, its been eaten
+    var pawnsAtPath = this.getOccupiedCoordinatesByPath(
+        currCoordinate, destCoordinate
+    );
+    // The 1st coordinate is occupied by our Pawn
+    var pawn = this.getPawnByCoordinate(pawnsAtPath.shift());
+    // Remove the coordinate for the next Pawn in list
+    //  it been eaten
     var eatenPawnCoordinate = pawnsAtPath.shift();
     if(eatenPawnCoordinate) {
         this.removePawn(eatenPawnCoordinate);
     }
-
 
     // Move the pawn to its final destination
     this.addPawn(pawn, destCoordinate);
